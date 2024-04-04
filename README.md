@@ -6,6 +6,16 @@ import { Range } from "range-admin"
 (new Range(1, 10)).compare(new Range(5, 13)) // { relationship: "OVERLAP", common: new Range(5, 10) }
 ```
 
+```sh
+# npm
+npm install range-admin
+
+# yarn
+yarn add range-admin
+```
+ * Github Repository: https://github.com/jhk1090/range-admin
+ * NPM Library: https://npmjs.com/package/range-admin
+---
  * [Feature](#feature)
     * [Range](#range)
     * [isEqual](#isequalrange-range)
