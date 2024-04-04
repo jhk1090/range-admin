@@ -18,8 +18,8 @@ yarn add range-admin
 ---
  * [Feature](#feature)
     * [Range](#range)
-    * [isEqual](#isequalrange-range)
-    * [isDisjoint](#isdisjointrange-range)
+    * [isEqual](#isequalranges-range)
+    * [isDisjoint](#isdisjointranges-range)
  * [Contribution](#contribution)
 
 # Feature
