@@ -66,7 +66,7 @@ export class Range {
     }
 
     /**
-     * Alias for {@link Range.isContainedIn|isContainedIn}
+     * Alias for {@link Range.isSubsetOf|isSubsetOf}
      */
     isContainedIn(otherRange: Range) {
         return this.isSubsetOf(otherRange)    

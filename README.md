@@ -47,7 +47,7 @@ new Range(1, 10)
 (new Range(3, 5)).compare(new Range(4, 9)) // { relationship: "OVERLAP", common: new Range(4, 5) }
 ```
 
-## isEqual(...range: Range[])
+## isEqual(...ranges: Range[])
 ```js
 const range1 = new Range(1, 3)
 const range2 = new Range(2, 5)
@@ -57,7 +57,7 @@ isEqual(range2, range1, range1) // false
 ```
 Check if all the ranges are equal.
 
-## isDisjoint(...range: Range[])
+## isDisjoint(...ranges: Range[])
 ```js
 const range1 = new Range(1, 3)
 const range2 = new Range(3, 5)
