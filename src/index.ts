@@ -12,28 +12,29 @@ export class Range {
         }
     }
 
+    /**
+     * Returns string representation of the range: (start, end)
+     */
     toString() {
-        return `Range(${this.start}, ${this.end})`
+        return `(${this.start}, ${this.end})`
     }
 
+    /**
+     * Returns array based on the range
+     * @param step step of range
+     */
     toArray(step: number = 1) {
-        let t = [];
-  
-        for (let x = this.start; (this.end - x) * step > 0; x += step) {
-            t.push(x);
-        }
-    
-        return t;
+        return makeRangeArray(this, step)
     }
 
     /**
      * Check if two ranges are equal
      * @param otherRange range to compare with
      * @example
-     * (new Range(3, 5)).isDisjoint(new Range(3, 5)) // true
+     * (new Range(3, 5)).isEqual(new Range(3, 5)) // true
      */
     isEqual(otherRange: Range) {
-        return this.start === otherRange.start && this.end === otherRange.end;
+        return _isEqual(this, otherRange);
     }
 
     /**
@@ -44,7 +45,7 @@ export class Range {
      * (new Range(3, 5)).isDisjoint(new Range(1, 2)) // true
      */
     isDisjoint(otherRange: Range) {
-        return this.start >= otherRange.end || this.end <= otherRange.start
+        return _isDisjoint(this, otherRange)
     }
 
     /**
@@ -62,7 +63,7 @@ export class Range {
      * (new Range(3, 5)).isSubsetOf(new Range(1, 5)) // true
      */
     isSubsetOf(otherRange: Range) {
-        return this.start >= otherRange.start && this.end <= otherRange.end
+        return _isSubsetOf(this, otherRange)
     }
 
     /**
@@ -79,7 +80,7 @@ export class Range {
      * (new Range(3, 5)).isOverlap(new Range(1, 4)) // true
      */
     isOverlap(otherRange: Range) {
-        return this.start < otherRange.end && this.end > otherRange.start
+        return _isOverlap(this, otherRange)
     }
 
     /**
@@ -89,42 +90,74 @@ export class Range {
      * (new Range(3, 5)).isAdjacent(new Range(5, 6)) // true
      */
     isAdjacent(otherRange: Range) {
-        return this.end === otherRange.start || this.start === otherRange.end;
+        return _isAdjacent(this, otherRange)
     }
 
     /**
-     * Compare with other range. The types of relationship are as follows: "equal", "subset", "superset", "disjoint", "overlap"
-     * @returns relationship of two range and common part of them.
+     * Compare relationship with other range. The types of relationship are as follows: "equal", "subset", "superset", "disjoint", "overlap"
+     * @returns relationship of two range.
      * @param otherRange range to compare with
      * @example
-     * (new Range(3, 5)).compare(new Range(1, 4)) // { relationship: "SUBSET", common: new Range(3, 4) }
+     * (new Range(3, 5)).compare(new Range(1, 5)) // "SUBSET"
      */
-    compare(otherRange: Range): { relationship: RangeRelationshipType; common: Range | null } {
+    compare(otherRange: Range): RangeRelationshipType {
         if (this.isEqual(otherRange)) {
-            return { relationship: "EQUAL", common: this };
+            return "EQUAL"
         }
 
         if (this.isDisjoint(otherRange)) {
-            return { relationship: "DISJOINT", common: null };
+            return "DISJOINT"
         }
 
         if (this.isSubsetOf(otherRange)) {
-            return { relationship: "SUBSET", common: this };
+            return "SUBSET"
         }
 
         if (otherRange.isSubsetOf(this)) {
-            return { relationship: "SUPERSET", common: otherRange };
+            return "SUPERSET"
+        }
+
+        if (this.isOverlap(otherRange)) {
+            return "OVERLAP"
+        }
+
+        // in case of fallthrough
+        return "DISJOINT"
+    }
+
+    /**
+     * Find common part of the range with other range.
+     * @returns Common part of range, or null
+     * @param otherRange range to compare with
+     * @example
+     * (new Range(3, 5)).compare(new Range(1, 4)) // new Range(3, 4)
+     */
+    findCommon(otherRange: Range): Range | null {
+        if (this.isEqual(otherRange)) {
+            return this;
+        }
+
+        if (this.isDisjoint(otherRange)) {
+            return null;
+        }
+
+        if (this.isSubsetOf(otherRange)) {
+            return this;
+        }
+
+        if (otherRange.isSubsetOf(this)) {
+            return otherRange;
         }
 
         if (this.isOverlap(otherRange)) {
             const commonStart = Math.max(this.start, otherRange.start);
             const commonEnd = Math.min(this.end, otherRange.end);
             const commonRange = new Range(commonStart, commonEnd);
-            return { relationship: "OVERLAP", common: commonRange };
+            return commonRange;
         }
 
         // in case of fallthrough
-        return { relationship: "DISJOINT", common: null };
+        return null;
     }
 }
 
@@ -134,14 +167,19 @@ class RangeError extends Error {
     }
 }
 
+const _isEqual = (a: Range, b: Range) => a.start === b.start && a.end === b.end
+const _isDisjoint = (a: Range, b: Range) => a.start > b.end || a.end < b.start
+const _isSubsetOf = (a: Range, b: Range) => a.start >= b.start && a.end <= b.end
+const _isOverlap = (a: Range, b: Range) => a.start < b.end && a.end > b.start
+const _isAdjacent = (a: Range, b: Range) => a.end === b.start || a.start === b.end;
+
 /**
- * Check if all the ranges are eqaul.
+ * Check if all the ranges are equal.
  * @param ranges ranges to be compared
  * @example
  * isEqual(new Range(3, 5), new Range(3, 5))
  */
 export function isEqual(...ranges: Range[]) {
-    const _isEqual = (a: Range, b: Range) => a.start === b.start && a.end === b.end
     let targetRange = ranges[0]
     for (let index = 1; index < ranges.length; index++) {
         if (_isEqual(targetRange, ranges[index])) {
@@ -160,7 +198,6 @@ export function isEqual(...ranges: Range[]) {
  * isDisjoint(new Range(3, 5)), new Range(7, 9)) // true
  */
 export function isDisjoint(...ranges: Range[]) {
-    const _isDisjoint = (a: Range, b: Range) => a.start > b.end || a.end < b.start
     let targetRanges: Range[] = [ranges[0]]
     for (let index = 1; index < ranges.length; index++) {
         for (const targetRange of targetRanges) {
@@ -171,4 +208,66 @@ export function isDisjoint(...ranges: Range[]) {
         targetRanges.push(ranges[index])
     }
     return true;
+}
+
+/**
+ * Check if the range is subset of its preceding range
+ * @param ranges 
+ * @example
+ * isSubset(new Range(1, 3), new Range(1, 8)) // false (2nd range is superset of 1st range)
+ * isSubset(new Range(1, 100), new Range(1, 10), new Range(1, 2)) // true
+ */
+export function isSubset(...ranges: Range[]) {
+    let targetRange = ranges[0]
+    for (let index = 1; index < ranges.length; index++) {
+        if (ranges[index].isSubsetOf(targetRange)) {
+            targetRange = ranges[index]
+        } else {
+            return false;
+        }
+    }
+    return true;
+}
+
+/**
+ * Check if the range is superset of its following range
+ * @param ranges 
+ * @example
+ * isSuperset(new Range(1, 8), new Range(1, 3)) // false (2nd range is subset of 1st range)
+ * isSuperset(new Range(1, 2), new Range(1, 10), new Range(1, 100)) // true
+ */
+export function isSuperset(...ranges: Range[]) {
+    let targetRange = ranges[0]
+    for (let index = 1; index < ranges.length; index++) {
+        if (targetRange.isSubsetOf(ranges[index])) {
+            targetRange = ranges[index]
+        } else {
+            return false;
+        }
+    }
+    return true;
+}
+
+/**
+ * Make array of range
+ * @param range start and end of range
+ * @param step step of range
+ * @example
+ * makeRangeArray([0, 11], 2) // [0, 2, 4, 6, 8, 10]
+ * makeRangeArray(new Range(0, 11), 2) // [0, 2, 4, 6, 8, 10]
+ * // equivalent of new Range(0, 11).toArray(2)
+ */
+
+export function makeRangeArray(range: Range | [number, number], step: number = 1) {
+    if (!(range instanceof Range)) {
+        range = new Range(range[0], range[1])
+    }
+
+    let t = [];
+    
+    for (let x = range.start; (range.end - x) * step > 0; x += step) {
+        t.push(x);
+    }
+
+    return t;
 }
