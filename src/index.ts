@@ -13,10 +13,10 @@ export class Range {
     }
 
     /**
-     * Returns string representation of the range: (start, end)
+     * Returns string representation of the range: start~end
      */
     toString() {
-        return `(${this.start}, ${this.end})`
+        return `${this.start}~${this.end}`
     }
 
     /**
@@ -84,7 +84,7 @@ export class Range {
     }
 
     /**
-     * CHeck if two ranges are adjacent
+     * Check if two ranges are adjacent
      * @param otherRange range to compare with
      * @example
      * (new Range(3, 5)).isAdjacent(new Range(5, 6)) // true
@@ -180,11 +180,8 @@ const _isAdjacent = (a: Range, b: Range) => a.end === b.start || a.start === b.e
  * isEqual(new Range(3, 5), new Range(3, 5))
  */
 export function isEqual(...ranges: Range[]) {
-    let targetRange = ranges[0]
     for (let index = 1; index < ranges.length; index++) {
-        if (_isEqual(targetRange, ranges[index])) {
-            targetRange = ranges[index]
-        } else {
+        if (!_isEqual(ranges[index - 1], ranges[index])) {
             return false;
         }
     }
@@ -212,17 +209,14 @@ export function isDisjoint(...ranges: Range[]) {
 
 /**
  * Check if the range is subset of its preceding range
- * @param ranges 
+ * @param ranges ranges to be compared
  * @example
  * isSubset(new Range(1, 3), new Range(1, 8)) // false (2nd range is superset of 1st range)
  * isSubset(new Range(1, 100), new Range(1, 10), new Range(1, 2)) // true
  */
 export function isSubset(...ranges: Range[]) {
-    let targetRange = ranges[0]
     for (let index = 1; index < ranges.length; index++) {
-        if (ranges[index].isSubsetOf(targetRange)) {
-            targetRange = ranges[index]
-        } else {
+        if (!ranges[index].isSubsetOf(ranges[index - 1])) {
             return false;
         }
     }
@@ -231,17 +225,14 @@ export function isSubset(...ranges: Range[]) {
 
 /**
  * Check if the range is superset of its following range
- * @param ranges 
+ * @param ranges ranges to be compared
  * @example
  * isSuperset(new Range(1, 8), new Range(1, 3)) // false (2nd range is subset of 1st range)
  * isSuperset(new Range(1, 2), new Range(1, 10), new Range(1, 100)) // true
  */
 export function isSuperset(...ranges: Range[]) {
-    let targetRange = ranges[0]
     for (let index = 1; index < ranges.length; index++) {
-        if (targetRange.isSubsetOf(ranges[index])) {
-            targetRange = ranges[index]
-        } else {
+        if (!ranges[index - 1].isSubsetOf(ranges[index])) {
             return false;
         }
     }
@@ -249,16 +240,31 @@ export function isSuperset(...ranges: Range[]) {
 }
 
 /**
+ * Check if all the ranges are adjacent with each other
+ * @param ranges ranges to be compared
+ * @example
+ * isAdjacent(new Range(1, 2), new Range(2, 3), new Range(3, 10)) // true
+ * isAdjacent(new Range(1, 2), new Range(4, 5), new Range(5, 6)) // false
+ */
+export function isAdjacent(...ranges: Range[]) {
+    for (let index = 1; index < ranges.length; index++) {
+        if (!ranges[index - 1].isAdjacent(ranges[index])) {
+            return false;
+        }
+    }
+    return true;
+}   
+
+/**
  * Make array of range
  * @param range start and end of range
- * @param step step of range
+ * @param step step of range (default=1)
  * @example
  * makeRangeArray([0, 11], 2) // [0, 2, 4, 6, 8, 10]
  * makeRangeArray(new Range(0, 11), 2) // [0, 2, 4, 6, 8, 10]
  * // equivalent of new Range(0, 11).toArray(2)
  */
-
-export function makeRangeArray(range: Range | [number, number], step: number = 1) {
+export function makeRangeArray(range: Range | [number, number], step: number = 1): number[] {
     if (!(range instanceof Range)) {
         range = new Range(range[0], range[1])
     }

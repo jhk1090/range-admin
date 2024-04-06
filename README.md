@@ -28,6 +28,7 @@ yarn add range-admin
     * [isDisjoint](#isdisjointranges-range)
     * [isSubset](#issubsetranges-range)
     * [isSuperset](#issupersetranges-range)
+    * [isAdjacent](#isadjacentranges-range)
     * [makeRangeArray](#makerangearrayrange-range--number-number-step-number)
  * [Contribution](#contribution)
 
@@ -36,7 +37,7 @@ yarn add range-admin
 ```js
 new Range(1, 10)
 ```
- * ```toString()``` - Returns string representation of the range: (start, end)
+ * ```toString()``` - Returns string representation of the range: start~end
  * [```toArray(step: number)```](#toarraystep-number) - Returns array based on the range
  * ```isEqual(otherRange: Range)``` - Check if two ranges are equal
  * ```isDisjoint(otherRange: Range)``` - Check if two ranges are disjoint (no relationship)
@@ -100,6 +101,13 @@ isSuperset(new Range(1, 100), new Range(1, 10), new Range(1, 2)) // true
 ```
 Check if the range is superset of its following range. (e.g. 2nd range should be superset of the 1st range)\
 Opposite with [```isSubset```](#issubsetranges-range).
+
+## isAdjacent(...ranges: Range[])
+```js
+isAdjacent(new Range(1, 2), new Range(2, 3), new Range(3, 10)) // true
+isAdjacent(new Range(1, 2), new Range(4, 5), new Range(5, 6)) // false
+```
+Check if all the ranges are adjacent with each other.
 
 ## makeRangeArray(range: Range | [number, number], step?: number)
 ```js
